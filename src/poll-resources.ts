@@ -1,0 +1,6 @@
+import {createHash} from 'node:crypto';
+export class PollResources {
+ readonly chunksize=524288;private resources=new Map<string,Buffer>();private keys=new Map<string,string>();private bytes=0;
+ externalize(events:any[]){return events.map(event=>{const result={...event};for(const kind of ['fonts','images'])if(event[kind])result[kind]=Object.fromEntries(Object.entries(event[kind]).map(([key,value]:any)=>{if(typeof value.data!=='string')return [key,value];const cacheKey=kind+':'+key;let id=this.keys.get(cacheKey);if(!id){const data=Buffer.from(value.data,'base64');id=createHash('sha256').update(data).digest('hex');if(!this.resources.has(id)){if(this.bytes+data.length>64000000)throw Error('Binary resource budget exceeded');this.resources.set(id,data);this.bytes+=data.length;}this.keys.set(cacheKey,id);}const {data,...metadata}=value;return [key,{...metadata,resourceRef:id,byteLength:this.resources.get(id)!.length}];}));return result;});}
+ chunk(id:string,offset:string|null){if(!/^[a-f0-9]{64}$/.test(id)||offset===null||!/^(0|[1-9][0-9]*)$/.test(offset))return null;const data=this.resources.get(id),start=Number(offset);if(!data||!Number.isSafeInteger(start)||start<0||start>=data.length||start%this.chunksize!==0)return null;return data.subarray(start,start+this.chunksize);}
+}

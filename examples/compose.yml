@@ -1,0 +1,40 @@
+name: overleaf-realtime-demo
+services:
+  mongo:
+    image: mongo@sha256:b9924c330a8bbc5800fe9c69f04a84e221eca7b28fd049a0354147d9908fa142
+    command: ["mongod", "--replSet", "overleaf", "--bind_ip_all"]
+    volumes: ["mongo:/data/db"]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 60s
+      start_period: 30s
+      retries: 30
+  mongo-init:
+    image: mongo@sha256:b9924c330a8bbc5800fe9c69f04a84e221eca7b28fd049a0354147d9908fa142
+    depends_on:
+      mongo: {condition: service_healthy}
+    entrypoint: ["mongosh", "--host", "mongo", "--quiet", "--eval"]
+    command: ["try { rs.status() } catch (_) { rs.initiate({_id:'overleaf',members:[{_id:0,host:'mongo:27017'}]}) }"]
+  redis:
+    image: redis@sha256:2e3eb11462c4e3759e6972678dd051d150ff54b1e60714b3c33b701260172a90
+    volumes: ["redis:/data"]
+  overleaf:
+    image: sharelatex/sharelatex@sha256:a745d0fa67c0d05d8c29bb68502aac52416d92f5631fd6876334314658e1e19e
+    platform: linux/amd64
+    ports: ["127.0.0.1:18080:80"]
+    depends_on:
+      mongo-init: {condition: service_completed_successfully}
+      redis: {condition: service_started}
+    environment:
+      OVERLEAF_MONGO_URL: mongodb://mongo:27017/sharelatex?replicaSet=overleaf
+      OVERLEAF_REDIS_HOST: redis
+      REDIS_HOST: redis
+      OVERLEAF_SITE_URL: http://127.0.0.1:18080
+      OVERLEAF_APP_NAME: Realtime preview test instance
+      OVERLEAF_INVITE_TOKEN_SECRET: ${OVERLEAF_INVITE_TOKEN_SECRET:?Generate a persistent base64 secret as documented}
+    volumes: ["overleaf:/var/lib/overleaf"]
+volumes:
+  mongo: {}
+  redis: {}
+  overleaf: {}

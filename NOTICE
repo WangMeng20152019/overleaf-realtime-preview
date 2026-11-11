@@ -1,0 +1,24 @@
+Overleaf Realtime Preview — third-party attribution
+
+This integration builds on realtime-tex by Henry Yang and the realtime-tex
+contributors; realtime-tex-vsc-plugin by Henry Yang; Overleaf Community Edition
+by its contributors; and the dependencies listed in docs/DEPENDENCY_LICENSES.json.
+
+Project-specific integration and downstream patch files: AGPL-3.0-only.
+The full license text is in COPYING. Original third-party portions retain their
+licenses and notices; this declaration does not claim their authorship.
+
+The vendored renderer/protocol files derive from realtime-tex-vsc-plugin commit
+d7a34f18c9210fd22c2e018b868b20a0495dc3c0 (MIT). The renderer and model contain
+local changes; see docs/VENDOR_PROVENANCE.json and vendor/LICENSE.
+
+The engine patch targets realtime-tex v0.0.6 commit
+98b40be29ef517918ce707869e6fe0316685b3dd (upstream MIT). See
+engine/overleaf-v0.0.6.patch and docs/licenses/realtime-tex-v0.0.6-MIT.txt.
+
+The Overleaf source patches are downstream modifications, not an upstream
+Overleaf release. The tested immutable image and relevant source identities must be recorded; an
+unknown upstream Git mapping must not be replaced with a guessed commit.
+
+AI assistance in implementation and review is disclosed in docs/DEVELOPMENT.md.
+See THIRD_PARTY.md for the file scopes, exact origins and remaining review limits.

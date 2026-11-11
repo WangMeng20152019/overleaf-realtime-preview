@@ -1,0 +1,72 @@
+{
+  "upstreamTag": "v0.0.6",
+  "upstreamCommit": "98b40be29ef517918ce707869e6fe0316685b3dd",
+  "sourceSHA256": {
+    "crates/rtex-core/src/session/mod.rs": "49af575588f2b3461a92595b7d88469aa44f8675e2d1b53210f7a264d736a8ab",
+    "crates/rtex-core/src/session/passes.rs": "db803605e6360bd3eca90a1c08368f69c6f164452998c380e37a64f6ccf4a824",
+    "Cargo.lock": "5e1bd629a20b66c53b214f4fad9e00a776c0b087b252122c72f483e713c5ceb5"
+  },
+  "supportSHA256": {
+    "latex/rtex-capture.sty": "d60de1a81a7a38be34370513a807ff28285aa99d78af5bcd857dbd3de95a75a3",
+    "latex/rtex-pic.tex": "7b4a96929e9c1250fea9ccfec035ae7fdcae621dfc9935c6d40fc453ea626f01",
+    "latex/rtex-serve-patches.tex": "c3f60bca492237e5adcc032f3baf5795de7ce92896b683c4971a337d2825d98a",
+    "rtex-bg.lua": "0877d9e0ffb2956528f9aff11fa0e4496a9c4e170ffb15e6dc9c78872ea14d58",
+    "rtex-capture.lua": "073ec50fd94ab5b3663dc78911ed938c42b5bff4e105f17d9a67560334d5d6d7",
+    "rtex-dl-bin.lua": "999201f2e7d2355ee118ab2f33b5d6c4015b76d12e33caf718f2a1bdedbe2919",
+    "rtex-dl.lua": "bfe5ab8833cfe54f63bb8bb85b5f4243d4e4d30c8c8d550bcc2804d448169239",
+    "rtex-json.lua": "b3e5e56da75801d62c8cdff48b109545cf48f1d51441ad222622b95aad2c48d8",
+    "rtex-pic.lua": "5b19a36a0dd9b43f8042f4450a05f707e560bbcf1e5cea41aa3d1b63c90102e7",
+    "rtex-serve.lua": "9148607210bfb8d0f908ff1230ba97b227fd828f19c3382d064804bea311c3ae"
+  },
+  "linux": {
+    "SHA256": "f7c242c357be5be1b470985ec5927158e126f85d81d3301e8b45951209c80566",
+    "bytes": 7512336,
+    "machine": 62,
+    "interpreter": false,
+    "needed": [],
+    "targetExecuted": false
+  },
+  "mac": {
+    "SHA256": "a64da4e7900aa492843548d34e148663836a8fa3c82e714f3e279cc82f1ef6d0",
+    "bytes": 8851000,
+    "doctorExit": 0
+  },
+  "tests": {
+    "coreAndIntegration": {
+      "passed": 108,
+      "failed": 0,
+      "ignored": 0,
+      "suites": 16,
+      "skipMessages": 0
+    },
+    "protocolAndDisplayList": {
+      "passed": 3,
+      "failed": 0,
+      "ignored": 0,
+      "suites": 5,
+      "skipMessages": 0
+    },
+    "Lua": {
+      "passed": 16,
+      "failed": 0
+    },
+    "mathRecovery": {
+      "cases": 4,
+      "ok": true,
+      "engineSHA256": "a64da4e7900aa492843548d34e148663836a8fa3c82e714f3e279cc82f1ef6d0",
+      "sourceRestored": true,
+      "processCleanup": true
+    }
+  },
+  "logsSHA256": {
+    "core-and-integration-tests-final.log": "1681e5813e295689020f0f3acc35ff79ff18f4e97ea5606f4fcaeabab2f347fe",
+    "protocol-and-display-list-tests.log": "0c0ffdfad5a238dc4fb8dc56415e09e5ae4fd83bfa18d3b82811c743e369ec4f",
+    "lua-tests.log": "1c8282501679b53f28cd5fe876f3a86cf6f46b38c2a5b020d5672a802cbdc6b3",
+    "mac-build-final.log": "3574bebb7ebab4af7e5fbda491536294bd3a9cce0d2a9d02957e38b65db7cbf1",
+    "musl-build-final.log": "ac4d8e22366a58556307995c476ea159e115e723eb09b7a61ee402949962dedb",
+    "export-private-biber.log": "a65d6231228d3ab526950f4c1c4b357a62b76b38f0c42abbb176ca8b0eb9b798",
+    "math-recovery-result.json": "486f85ee3ca6bc0129ef50619318262deb78c3c4098ad0f9bafaf0dee465a97d"
+  },
+  "patchSHA256": "75ca2dd232c00a34bf3c4e6e91025f611c4610e9a4842a0a49920574dbd25e08",
+  "environmentNote": "Initial export tests failed because the installed universal Biber binary cannot self-extract with system lipo. A task-private arm64 slice of that exact installed binary reports Biber2.21 and the export/full suites pass. Original TeX installation unchanged; private bin symlinks/extract are test-only and must not deploy."
+}

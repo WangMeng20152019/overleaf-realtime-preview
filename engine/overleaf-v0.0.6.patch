@@ -1,0 +1,309 @@
+diff --git a/crates/rtex-core/src/session/mod.rs b/crates/rtex-core/src/session/mod.rs
+index 76d28b1..497d180 100644
+--- a/crates/rtex-core/src/session/mod.rs
++++ b/crates/rtex-core/src/session/mod.rs
+@@ -586,14 +586,11 @@ impl Session {
+     pub fn set_document(&self, rel_path: &str, text: &str) -> Result<EditResult> {
+         let key = self.rel_key(rel_path);
+         let rel_path = key.as_str();
+-        let len = self
+-            .shared
+-            .files
+-            .lock()
+-            .get(rel_path)
+-            .map(|f| f.text.len())
+-            .unwrap_or(0);
+-        if len == 0 && !self.shared.files.lock().contains_key(rel_path) {
++        #[cfg(test)]
++        revision_lock_tests::before_mutation_lock();
++        let mut files = self.shared.files.lock();
++        let len = files.get(rel_path).map(|f| f.text.len()).unwrap_or(0);
++        if !files.contains_key(rel_path) {
+             // the snapshot writes the file at this key
+             if !crate::paths::inside_project(rel_path) {
+                 return Err(anyhow!("{rel_path} is outside the project"));
+@@ -605,7 +602,8 @@ impl Session {
+                 rev,
+                 self.shared.policy.lock().segment_rules(),
+             );
+-            self.shared.files.lock().insert(rel_path.to_string(), fb);
++            files.insert(rel_path.to_string(), fb);
++            drop(files);
+             self.schedule_background();
+             let edit_id = self.shared.edit_counter.fetch_add(1, Ordering::SeqCst) + 1;
+             return Ok(EditResult {
+@@ -617,6 +615,7 @@ impl Session {
+                 host_us: [0, 0, 0],
+             });
+         }
++        drop(files);
+         self.apply_edit(
+             rel_path,
+             Edit {
+@@ -632,12 +631,13 @@ impl Session {
+         let rel_path = key.as_str();
+         let t_start = Instant::now();
+         let edit_id = self.shared.edit_counter.fetch_add(1, Ordering::SeqCst) + 1;
+-        let rev = self.shared.source_revision.fetch_add(1, Ordering::SeqCst) + 1;
+         let is_setup = |text: &str| {
+             crate::eligibility::setup_statements(&crate::eligibility::strip_comments(text))
+                 .is_some()
+         };
+-        let (mut outcome, setup_span) = {
++        #[cfg(test)]
++        revision_lock_tests::before_mutation_lock();
++        let (mut outcome, setup_span, rev) = {
+             let mut files = self.shared.files.lock();
+             let fb = files
+                 .get_mut(rel_path)
+@@ -650,6 +650,9 @@ impl Session {
+                     fb.text.len()
+                 ));
+             }
++            // Snapshot readers hold this same guard. Rejected input never advances
++            // the source revision, and an accepted revision always owns its buffer.
++            let rev = self.shared.source_revision.fetch_add(1, Ordering::SeqCst) + 1;
+             // a setup span (definitions, lengths after \begin{document}) before or after the
+             // edit: the server's preamble changes
+             let was_setup = fb.spans.iter().any(|sp| {
+@@ -663,7 +666,7 @@ impl Session {
+                 .iter()
+                 .chain(outcome.added.iter())
+                 .any(|id| fb.span_text(*id).map(is_setup).unwrap_or(false));
+-            (outcome, was_setup || now_setup)
++            (outcome, was_setup || now_setup, rev)
+         };
+         if setup_span || self.shared.preamble_inputs.lock().contains(rel_path) {
+             outcome.preamble_changed = true;
+@@ -1092,3 +1095,67 @@ fn reason_str(r: &Reason) -> String {
+ fn first_line_of(msg: &str) -> &str {
+     msg.lines().next().unwrap_or("")
+ }
++
++#[cfg(test)]
++mod revision_lock_tests {
++    use super::*;
++    thread_local! {
++        static MUTATION_ATTEMPT: std::cell::RefCell<Option<std::sync::mpsc::Sender<()>>> =
++            std::cell::RefCell::new(None);
++    }
++    pub(super) fn before_mutation_lock() {
++        MUTATION_ATTEMPT.with(|hook| { if let Some(tx) = hook.borrow_mut().take() { tx.send(()).unwrap(); } });
++    }
++    #[test]
++    fn source_revision_and_mutation_share_snapshot_lock() {
++        crate::texlive::TexLive::discover().expect("LuaLaTeX required for revision-lock regression");
++        let root = std::env::temp_dir().join(format!("rtex-source-revision-lock-{}", std::process::id()));
++        let _ = std::fs::remove_dir_all(&root);
++        std::fs::create_dir_all(&root).unwrap();
++        let source = "\\documentclass{article}\n\\begin{document}\nAlpha stable paragraph.\n\nBeta stable paragraph.\n\\end{document}\n";
++        std::fs::write(root.join("main.tex"), source).unwrap();
++        let mut cfg = SessionConfig::new(&root, "main.tex");
++        cfg.build_dir = root.join("build");
++        let session = Session::open(cfg).unwrap();
++        let (initial, _) = session.wait_for(Duration::from_secs(30), |e| matches!(e,
++            Event::LayoutUpdate { compile: CompileStatus::Ok, convergence: Convergence::Converged, .. }));
++        assert!(initial.is_some());
++        session.pause_background(true);
++        for new_file in [false, true] {
++            let guard = session.shared.files.lock();
++            let before = session.shared.source_revision.load(Ordering::SeqCst);
++            let (tx, rx) = std::sync::mpsc::channel();
++            std::thread::scope(|scope| {
++                let worker = scope.spawn(|| {
++                    MUTATION_ATTEMPT.with(|hook| *hook.borrow_mut() = Some(tx));
++                    if new_file { session.set_document("extra.tex", "Extra source.") }
++                    else { session.apply_edit("main.tex", Edit { start_byte: source.find("Alpha").unwrap(), end_byte: source.find("Alpha").unwrap(), text: "New ".into() }) }
++                });
++                rx.recv_timeout(Duration::from_secs(5)).unwrap();
++                // Worker reached the mutation lock while snapshot owns it.
++                let while_locked = session.shared.source_revision.load(Ordering::SeqCst);
++                drop(guard);
++                let result = worker.join().unwrap().unwrap();
++                assert_eq!(while_locked, before,
++                    "revision advanced while source was still blocked by snapshot");
++                let (texts, _, revision) = passes::snapshot(&session.shared);
++                assert_eq!(revision, result.source_revision);
++                assert!(if new_file { texts["extra.tex"] == "Extra source." }
++                    else { texts["main.tex"].contains("New Alpha") });
++            });
++        }
++        let before = session.shared.source_revision.load(Ordering::SeqCst);
++        let current = session.document_text("main.tex").unwrap();
++        for (start, end) in [(2, 1), (current.len() + 1, current.len() + 1)] {
++            assert!(session.apply_edit("main.tex", Edit { start_byte: start, end_byte: end, text: "x".into() }).is_err());
++            assert_eq!(session.shared.source_revision.load(Ordering::SeqCst), before);
++            assert_eq!(session.document_text("main.tex").unwrap(), current);
++        }
++        assert!(session.set_document("../outside.tex", "x").is_err());
++        assert_eq!(session.shared.source_revision.load(Ordering::SeqCst), before);
++        assert!(session.apply_edit("missing.tex", Edit { start_byte: 0, end_byte: 0, text: "x".into() }).is_err());
++        assert_eq!(session.shared.source_revision.load(Ordering::SeqCst), before);
++        session.close();
++        std::fs::remove_dir_all(root).unwrap();
++    }
++}
+diff --git a/crates/rtex-core/src/session/passes.rs b/crates/rtex-core/src/session/passes.rs
+index 4bdbbe7..7922db3 100644
+--- a/crates/rtex-core/src/session/passes.rs
++++ b/crates/rtex-core/src/session/passes.rs
+@@ -525,7 +525,6 @@ pub(super) fn deliver_layout(
+     rev: Revision,
+     provisional: bool,
+ ) {
+-    withdraw_fast_failures(s, rev);
+     let mut diagnostics = parse_log(&cap.log);
+     for d in &mut diagnostics {
+         // the standby reads the preamble from rtex-preamble.tex (same line numbers)
+@@ -545,10 +544,6 @@ pub(super) fn deliver_layout(
+     } else {
+         CompileStatus::Ok
+     };
+-    if compile == CompileStatus::Ok {
+-        // the state the live engine starts units from no longer comes from text that crashed it
+-        s.live.lock().on_clean_pass(rev);
+-    }
+     if compile == CompileStatus::Failed {
+         s.events
+             .send(Event::Diagnostics {
+@@ -582,6 +577,13 @@ pub(super) fn deliver_layout(
+         // lock order everywhere: files, then layout, then policy (apply_edit holds the first two
+         // together)
+         let files = s.files.lock();
++        // A superseded snapshot may not replace the replay baseline or borrow
++        // current source stamps. Edits and snapshots own this same files lock.
++        if s.source_revision.load(Ordering::SeqCst) != rev {
++            drop(files);
++            s.bg_signal.0.send(BgCmd::Pass).ok();
++            return;
++        }
+         let mut layout = s.layout.lock();
+         let changed = match layout.install(cap, spans, rev) {
+             Ok(c) => {
+@@ -621,7 +623,7 @@ pub(super) fn deliver_layout(
+             }
+         };
+         let versions = Versions {
+-            source_revision: s.source_revision.load(Ordering::SeqCst),
++            source_revision: rev,
+             context_revision: layout.context_revision,
+             engine_generation: s.engine_generation.load(Ordering::SeqCst),
+             layout_version: layout.layout_version,
+@@ -692,6 +694,18 @@ pub(super) fn deliver_layout(
+                 }
+             }
+         }
++        // Retire the previous live baseline while installation remains atomic.
++        // A result arriving after these locks release belongs to the new layout.
++        {
++            let mut live = s.live.lock();
++            live.on_new_layout(versions.layout_version);
++            if compile == CompileStatus::Ok {
++                // Recovery belongs to this installed clean replay baseline, not
++                // to an obsolete or failed pass whose source was never admitted.
++                live.on_clean_pass(rev);
++            }
++        }
++        withdraw_fast_failures(s, rev);
+         drop(files);
+         placements.sort_by_key(|p| p.par_id);
+         eligible.sort();
+@@ -705,6 +719,8 @@ pub(super) fn deliver_layout(
+             layout.pdf.clone(),
+         )
+     };
++    #[cfg(test)]
++    capture_revision_tests::after_install(s);
+     // warm the engine: compile the first allow-listed paragraph once so fonts are loaded before
+     // the first real keystroke (never an unprobed unit: it could leak state)
+     if let Some(id) = eligible_strict.first().copied() {
+@@ -744,9 +760,6 @@ pub(super) fn deliver_layout(
+             }
+         }
+     }
+-    // borrowed contexts, live rows and placements are superseded by the new placements, and
+-    // facts tagged with an older layout no longer apply
+-    s.live.lock().on_new_layout(versions.layout_version);
+     let current = s.source_revision.load(Ordering::SeqCst);
+     let mut reasons = Vec::new();
+     if !aux_stable {
+@@ -896,3 +909,79 @@ pub(super) fn run_export(s: &Shared, job: u64, out: PathBuf) {
+         }
+     }
+ }
++
++#[cfg(test)]
++mod capture_revision_tests {
++    use super::*;
++
++    thread_local! {
++        static AFTER_INSTALL: std::cell::RefCell<Option<Box<dyn FnOnce(&Shared)>>> =
++            std::cell::RefCell::new(None);
++    }
++    pub(super) fn after_install(s: &Shared) {
++        AFTER_INSTALL.with(|hook| { if let Some(run) = hook.borrow_mut().take() { run(s); } });
++    }
++
++    #[test]
++    fn superseded_capture_keeps_replay_baseline_then_converges_after_idle() {
++        crate::texlive::TexLive::discover().expect("LuaLaTeX required for capture revision regression");
++        let root = std::env::temp_dir().join(format!("rtex-capture-revision-{}", std::process::id()));
++        let _ = std::fs::remove_dir_all(&root);
++        std::fs::create_dir_all(&root).unwrap();
++        let text = "\\documentclass{article}\n\\begin{document}\nAlpha stable paragraph.\n\nBeta stable paragraph.\n\\end{document}\n";
++        std::fs::write(root.join("main.tex"), text).unwrap();
++        let mut cfg = SessionConfig::new(&root, "main.tex");
++        cfg.build_dir = root.join("build");
++        cfg.debounce = Duration::from_millis(25);
++        let session = Session::open(cfg).unwrap();
++        let (first, _) = session.wait_for(Duration::from_secs(30), |e| matches!(e,
++            Event::LayoutUpdate { compile: CompileStatus::Ok, convergence: Convergence::Converged, .. }));
++        assert!(first.is_some(), "initial capture missing");
++        session.pause_background(true);
++        let deadline = Instant::now() + Duration::from_secs(5);
++        while session.shared.bg_running.load(Ordering::SeqCst) && Instant::now() < deadline {
++            std::thread::sleep(Duration::from_millis(5));
++        }
++        assert!(!session.shared.bg_running.load(Ordering::SeqCst));
++        let (_, spans, captured_rev) = snapshot(&session.shared);
++        let dir = session.shared.last_pass_dir.lock().clone().unwrap();
++        let mut json: crate::capture::CaptureJson = serde_json::from_str(
++            &std::fs::read_to_string(dir.join("main.rtex.json")).unwrap()).unwrap();
++        json.finalize();
++        let cap = crate::capture::CaptureResult { out_dir: dir.clone(), jobname: "main".into(),
++            json, pdf: dir.join("main.pdf"), log: dir.join("main.log"),
++            wall: Duration::ZERO, exit_ok: true };
++        // Deterministic post-install latch: a new-layout live result arriving
++        // after the installation locks release must survive warm-up scheduling.
++        // The former late on_new_layout call erased this exact marker.
++        AFTER_INSTALL.with(|hook| *hook.borrow_mut() = Some(Box::new(|s| {
++            s.live.lock().unit(ParaId(999_999)).rows = Some(3);
++        })));
++        deliver_layout(&session.shared, Instant::now(), &cap, 1, true, spans.clone(), captured_rev, false);
++        assert_eq!(session.shared.live.lock().get(ParaId(999_999)).and_then(|u| u.rows), Some(3),
++            "new-layout live result was erased after installation locks released");
++        let before = session.versions();
++        let at = text.find("Beta").unwrap();
++        let result = session.apply_edit("main.tex", Edit { start_byte: at, end_byte: at,
++            text: "New inserted paragraph.\n\n".into() }).unwrap();
++        let failed = ParaId(999_998);
++        session.shared.live.lock().quarantine(failed, 1, captured_rev);
++        session.shared.fast_failures.lock().insert(failed, captured_rev);
++        deliver_layout(&session.shared, Instant::now(), &cap, 1, true, spans, captured_rev, false);
++        assert_eq!(session.shared.live.lock().get(failed).and_then(|u| u.crash).map(|c| c.clean_pass), Some(false),
++            "obsolete clean capture granted quarantine recovery without installing a replay baseline");
++        assert!(session.shared.fast_failures.lock().contains_key(&failed),
++            "obsolete capture withdrew live diagnostics although it was not admitted");
++        let after = session.versions();
++        assert_eq!(after.layout_version, before.layout_version, "stale capture changed layout");
++        assert_eq!(after.context_revision, before.context_revision, "stale capture changed replay context");
++        session.pause_background(false);
++        let (latest, _) = session.wait_for(Duration::from_secs(30), |e| matches!(e,
++            Event::LayoutUpdate { versions, compile: CompileStatus::Ok, .. }
++                if versions.source_revision == result.source_revision));
++        assert!(latest.is_some(), "idle source did not receive a matching full capture");
++        assert!(session.document_text("main.tex").unwrap().contains("New inserted paragraph."));
++        session.close();
++        std::fs::remove_dir_all(root).unwrap();
++    }
++}

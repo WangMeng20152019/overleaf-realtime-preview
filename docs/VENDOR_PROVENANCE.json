@@ -1,0 +1,55 @@
+{
+  "reviewedOn": "2026-11-10",
+  "upstreamRepository": "HenryXiaoYang/realtime-tex-vsc-plugin",
+  "upstreamCommit": "d7a34f18c9210fd22c2e018b868b20a0495dc3c0",
+  "files": [
+    {
+      "path": "src/protocol.ts",
+      "sourceURL": "https://github.com/HenryXiaoYang/realtime-tex-vsc-plugin/blob/d7a34f18c9210fd22c2e018b868b20a0495dc3c0/src/protocol.ts",
+      "upstreamGitBlobSHA": "25ee356eb75304dc33dbf3a8a9f175b8f824e39a",
+      "candidateSHA256": "6ceb6fad0bb1cb46da5049e82a51933011eb11a645428d43c5e10982a1849dbc",
+      "candidateGitBlobSHA": "25ee356eb75304dc33dbf3a8a9f175b8f824e39a",
+      "modified": false
+    },
+    {
+      "path": "src/resources.ts",
+      "sourceURL": "https://github.com/HenryXiaoYang/realtime-tex-vsc-plugin/blob/d7a34f18c9210fd22c2e018b868b20a0495dc3c0/src/resources.ts",
+      "upstreamGitBlobSHA": "af1d23e648ffbedc262de72c7948ccf2cc277dbb",
+      "candidateSHA256": "3f5a990d1a98919d849f4239505dd829d9bff2b5ed1b26f876c390841c5c35fb",
+      "candidateGitBlobSHA": "af1d23e648ffbedc262de72c7948ccf2cc277dbb",
+      "modified": false
+    },
+    {
+      "path": "src/type1.ts",
+      "sourceURL": "https://github.com/HenryXiaoYang/realtime-tex-vsc-plugin/blob/d7a34f18c9210fd22c2e018b868b20a0495dc3c0/src/type1.ts",
+      "upstreamGitBlobSHA": "14bfe09b9028b41d8c44d9f569708bd34a61dae2",
+      "candidateSHA256": "c9af76bf595b7f500b73714de7e100aa82cb62abdc634322335881881194a312",
+      "candidateGitBlobSHA": "14bfe09b9028b41d8c44d9f569708bd34a61dae2",
+      "modified": false
+    },
+    {
+      "path": "src/fontKey.ts",
+      "sourceURL": "https://github.com/HenryXiaoYang/realtime-tex-vsc-plugin/blob/d7a34f18c9210fd22c2e018b868b20a0495dc3c0/src/fontKey.ts",
+      "upstreamGitBlobSHA": "6791a2258c8ff29785480baf8c7b2cbc96049e52",
+      "candidateSHA256": "ef6f5f0efd383c6b7e0ea19fd757155749516b8f1ab0c3d45e982519603b165d",
+      "candidateGitBlobSHA": "6791a2258c8ff29785480baf8c7b2cbc96049e52",
+      "modified": false
+    },
+    {
+      "path": "webview/render.ts",
+      "sourceURL": "https://github.com/HenryXiaoYang/realtime-tex-vsc-plugin/blob/d7a34f18c9210fd22c2e018b868b20a0495dc3c0/webview/render.ts",
+      "upstreamGitBlobSHA": "385a9d8b01810ec78491cf3684f2404bef59e823",
+      "candidateSHA256": "caf8da4e78fa1e21386d2e957b3a5b7501ead06437bc43e666a04979a85afa93",
+      "candidateGitBlobSHA": "2c7350b56117cea636bf64351cd354557d33a58f",
+      "modified": true
+    },
+    {
+      "path": "webview/model.ts",
+      "sourceURL": "https://github.com/HenryXiaoYang/realtime-tex-vsc-plugin/blob/d7a34f18c9210fd22c2e018b868b20a0495dc3c0/webview/model.ts",
+      "upstreamGitBlobSHA": "11e224b5698ee9f81734c7d086fe49e06b254d37",
+      "candidateSHA256": "3948e33d536361295ce722a089461d767b5920c046e329c2b8feb56dbfb916be",
+      "candidateGitBlobSHA": "cdcec9284adbfe7bfbbabfff033f9d79a92f13f5",
+      "modified": true
+    }
+  ]
+}

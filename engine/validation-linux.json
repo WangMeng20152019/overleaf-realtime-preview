@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "verifiedOn": "2026-11-10",
+  "image": "sharelatex/sharelatex@sha256:a745d0fa67c0d05d8c29bb68502aac52416d92f5631fd6876334314658e1e19e",
+  "platform": "linux/amd64",
+  "engineSHA256": "29b917aca250344f720484771090aabd97ac3bfd04a6e98996f692dda6614206",
+  "doctor": {
+    "exit": 0,
+    "output": [
+      "rtex 0.0.6",
+      "support files: /opt/rtex-engine/tex",
+      "lualatex: /usr/local/bin/lualatex (This is LuaHBTeX, Version 1.24.0 (TeX Live 2026))"
+    ]
+  },
+  "texPreparation": [
+    "tlmgr --repository https://mirror.ctan.org/systems/texlive/tlnet update --self",
+    "tlmgr --repository https://mirror.ctan.org/systems/texlive/tlnet install luatexbase ctex fandol"
+  ],
+  "installedPackages": {
+    "luatexbase": {
+      "revision": "77682",
+      "cat-version": "1.3",
+      "cat-license": "lppl1.3"
+    },
+    "ctex": {
+      "revision": "79993",
+      "cat-version": "2.6.5",
+      "cat-license": "lppl1.3c"
+    },
+    "fandol": {
+      "revision": "37889",
+      "cat-version": "0.3",
+      "cat-license": "gpl"
+    }
+  },
+  "cases": [
+    {
+      "case": "inline",
+      "brokenState": "CompiledWithErrors",
+      "fixedState": "Ok",
+      "followupState": "Ok",
+      "seconds": 6.041,
+      "engineAlive": true
+    },
+    {
+      "case": "double-dollar",
+      "brokenState": "CompiledWithErrors",
+      "fixedState": "Ok",
+      "followupState": "Ok",
+      "seconds": 6.775,
+      "engineAlive": true
+    },
+    {
+      "case": "display-bracket",
+      "brokenState": "CompiledWithErrors",
+      "fixedState": "Ok",
+      "followupState": "Ok",
+      "seconds": 7.15,
+      "engineAlive": true
+    },
+    {
+      "case": "equation-aligned",
+      "brokenState": "CompiledWithErrors",
+      "fixedState": "Ok",
+      "followupState": "Ok",
+      "seconds": 4.379,
+      "engineAlive": true
+    }
+  ],
+  "sourceRestored": true,
+  "processCleanup": true,
+  "synthetic": true,
+  "osIMEClaim": false,
+  "NASClaim": false,
+  "targetExecutionVerified": true,
+  "privatePathScan": {
+    "UsersPrefix": false,
+    "privateUsername": false,
+    "privateServerHost": false
+  },
+  "scope": "Synthetic isolated engine/CJK/formula error-recovery acceptance, not a full Overleaf browser workflow or latency benchmark."
+}
