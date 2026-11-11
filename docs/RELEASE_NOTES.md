@@ -1,37 +1,51 @@
-# v0.1.0-alpha.2 · 首个完整源码预发布
+# v0.1.0-alpha.2 · Overleaf Realtime Preview
 
-写中文论文时，我们希望继续用 Overleaf 的编辑器，同时少等几次完整编译。这个项目把 realtime-tex 接进了自部署 Overleaf CE 原有的右侧预览区，可以切换「传统 PDF」和「LuaLaTeX 实时预览」。
+我们想做的事情很简单：**在 Overleaf 里实现实时 LaTeX 预览，同时支持中文和英文。**
 
-这是一个完整的实验性源码发布。仓库、标签和附件属于同一个版本；不需要先安装 alpha.1。源码内包含引擎补丁、编辑器与预览集成、部署和回滚工具、中英文首页、安装说明、测试、合成调试网页，以及实际问题记录。
+The goal is simple: **bring realtime LaTeX preview to Overleaf, with support for both Chinese and English.**
 
-## 上游与开发方式
+看到 [realtime-tex](https://github.com/HenryXiaoYang/realtime-tex) 开源后，我们觉得这件事有希望了。于是，我们主要借助 GPT（ChatGPT/Codex）编写和调试代码，尝试把它融合进 [Overleaf 的开源社区版](https://github.com/overleaf/overleaf)，让大家继续用熟悉的编辑器，在原来的右侧窗口里看到实时预览。
 
-本项目完全建立在 [realtime-tex](https://github.com/HenryXiaoYang/realtime-tex)、[Overleaf CE](https://github.com/overleaf/overleaf) 和 [realtime-tex-vsc-plugin](https://github.com/HenryXiaoYang/realtime-tex-vsc-plugin) 的开源工作之上。核心排版引擎、编辑平台和渲染基础属于上游；我们做的是集成与下游修改，保留原作者署名和许可。
+When [realtime-tex](https://github.com/HenryXiaoYang/realtime-tex) was released as open source, we saw a way to make this happen. We used GPT (ChatGPT/Codex) for most of the coding and debugging, working to integrate it into [Overleaf Community Edition](https://github.com/overleaf/overleaf). The idea was to keep the familiar editor and show the live preview in its existing right-hand pane.
 
-大部分代码编写、修改、调试和测试构造借助 ChatGPT/Codex 完成。我主要提出需求，在真实中文写作中使用，反馈具体问题，再验证修改后的体验。开发记录和首页曾借助 DeepSeek 润色，之后继续修改和核对。
+## 从想法到现在 / How we got here
 
-## 我们实际遇到的问题
+接起来之后，真正的麻烦才开始。尤其是在较大的中文项目里，出现了不少问题：新起一段要等很久，同一段里继续输入却很快；刚显示的文字又消失了；删掉的内容重新出现；公式还没写完，预览就卡住；跨页时更新慢，定位和行距也时常不对。
 
-最初最难处理的不是「能不能显示」，而是「下一次修改还对不对」：第一次新建段落很慢，同一段内输入却很快；第三段出现时第二段又消失；删除的内容重新回来；公式刚输入 `$`、反斜线或尚未写完的命令就报错；跨页后正文短暂看不见；局部预览的行距与完整排版不一致；定位跟随和导航也曾失效。
+Getting the two projects connected was only the beginning. Larger Chinese documents exposed all sorts of bugs: a new paragraph could take ages to appear while edits within it felt quick; text would appear and then disappear; deleted content would return; unfinished formulas could stall the preview; and page breaks, position following and line spacing caused more trouble.
 
-这些反馈推动了源文本版本检查、局部与整篇结果的协调、未完成公式处理、恢复流程和定位修改。详细经过见 [问题记录](BUG_HISTORY.md)。这些修改不能据此推断所有模板、输入法和边界情况都已经修复。
+后面就是大量的使用、反馈和调试。我在实际写作中反复试，把遇到的问题反馈给 GPT，再一起排查、修改、验证。现在我们把一个基本可用的版本整理出来，希望更多人能试一试，告诉我们哪里好用、哪里还不行，也欢迎一起改进。它还不完善，尤其需要更多中文和英文项目的实际反馈。
 
-## 使用前请看
+What followed was a lot of use, feedback and debugging. I kept trying it in real writing, reporting what went wrong, and working with GPT to investigate, change the code and check the results. We are now sharing an initial usable version so more people can try it, tell us what works and what does not, and help improve it. There is still work to do, and feedback from more Chinese and English projects would be especially welcome.
 
-- 从 [安装说明](installation/README.md) 开始，在独立测试实例中使用项目副本。首版验证范围是 Linux amd64、固定的 Overleaf CE 版本组合、一个绑定项目和一个控制编辑会话。
-- 实时模式采用 LuaLaTeX，正式 PDF 保留 Overleaf 编译设置。XeLaTeX 模板需要检查字体与排版差异。
-- 复杂跨页环境和部分包含文件的定位仍可能不精确；不是逐字符 SyncTeX。
-- 在传统模式、离线或其他会话中修改后，可能需要管理员刷新快照。首版尚未自动接管这类修改。
-- 已完成固定环境的安装、编辑、回滚和重启验收，以及本地回归测试；首次 GitHub 自动检查也已通过。真实操作系统拼音输入法、更多模板、长文档压力和多人并发仍待验证。不承诺固定毫秒延迟。
+## 感谢 / Thank you
 
-请同时阅读 [兼容范围](COMPATIBILITY.md) 和 [验证记录](VALIDATION.md)。
+**非常感谢 realtime-tex 项目组的杰出工作和贡献。没有他们的开源工作，就不会有这个尝试。** 也感谢 Overleaf 和 [realtime-tex-vsc-plugin](https://github.com/HenryXiaoYang/realtime-tex-vsc-plugin) 的作者与贡献者。本项目建立在这些开源项目之上，主要做集成和针对实际使用问题的修改；原作者的署名和许可均予以保留。
 
-## 下载内容
+**Our deepest thanks to the realtime-tex team for their outstanding work and contributions. This project would not have been possible without their open-source work.** We also thank the authors and contributors of Overleaf and [realtime-tex-vsc-plugin](https://github.com/HenryXiaoYang/realtime-tex-vsc-plugin). This project builds on their work, focusing on integration and fixes prompted by actual use. Original credits and licenses are preserved.
 
-- `source.tar.gz`：完整源码与构建工具。
-- `filemanifest.json`：逐文件内容摘要和发布清单。
-- `SHA256SUMS`：源码包与清单的 SHA-256 校验值。
+## 反馈问题 / Reporting problems
 
-下载解压后从 `README.md` 开始。源码包不包含预编译引擎、TeX/字体、容器镜像、账户凭据、私人论文和原始诊断。源码完整不等于任意服务器的一键安装；运行环境按安装说明构建。
+如果你遇到卡顿、显示错误、内容消失，或者有其他建议，欢迎到 [GitHub Issues](https://github.com/WangMeng20152019/overleaf-realtime-preview/issues) 告诉我们。简单说清楚做了什么、预期怎样、实际发生了什么，最好再附一个能复现问题的小例子，就很有帮助。
 
-集成代码使用 AGPL-3.0-only；第三方组件沿用各自许可，详见 `COPYING`、`NOTICE` 与 `THIRD_PARTY.md`。欢迎用合成文档提交可复现的问题，先去除论文、账号和访问令牌等隐私。
+If you run into slow updates, rendering errors, disappearing content, or have suggestions, please open a [GitHub issue](https://github.com/WangMeng20152019/overleaf-realtime-preview/issues). Tell us what you did, what you expected and what actually happened. A small example that reproduces the problem would be very helpful.
+
+实时预览里提供了 **“诊断”按钮**，可以下载预览状态和耗时记录，方便排查问题。它不会自动提交报错。分享前请检查文件，去掉项目标识等不想公开的信息；也请不要上传私人论文、账号或访问令牌。
+
+The live preview includes a **诊断 (Diagnostics) button** that downloads preview state and timing information to help with troubleshooting. It does not submit a report automatically. Review the file before sharing it and remove project identifiers or anything else you do not want to make public. Please do not upload private manuscripts, account details or access tokens.
+
+## 下载与安装 / Download and installation
+
+这是我们的首个完整源码预发布，下载后请从 `README.md` 和[安装说明](installation/README.md)开始。源码、引擎补丁、部署工具、测试和本地调试网页都在同一个版本里，无须先安装 alpha.1。
+
+This is our first complete source prerelease. Start with `README.md` and the [installation guide](installation/README.md). The source, engine patches, deployment tools, tests and local debug page are all included in this version; there is no need to install alpha.1 first.
+
+- `source.tar.gz` — 完整源码 / Complete source
+- `filemanifest.json` — 文件清单与摘要 / File manifest and hashes
+- `SHA256SUMS` — 下载校验 / Download checksums
+
+实时预览使用 LuaLaTeX。目前验证范围是固定的 Linux amd64 与 Overleaf CE 组合、一个绑定项目和一个控制编辑会话。复杂环境定位、跨页、离线修改后的恢复等仍有限制；真实拼音输入法、更多模板和多人并发需要继续测试。源码包不含预编译引擎、TeX 或字体，请按安装说明构建环境。详见[兼容范围](COMPATIBILITY.md)和[验证记录](VALIDATION.md)。
+
+Live preview uses LuaLaTeX. Validation currently covers one pinned Linux amd64 / Overleaf CE setup, one bound project and one controlling editor session. Complex-environment navigation, pagination and recovery after offline edits still have limitations. Real pinyin input methods, more templates and concurrent editing need further testing. The source archive does not include a prebuilt engine, TeX or fonts; follow the installation guide to build the environment. See [compatibility](COMPATIBILITY.md) and [validation](VALIDATION.md).
+
+集成代码采用 AGPL-3.0-only；第三方组件保留原许可与署名。 / The integration uses AGPL-3.0-only; third-party components retain their original licenses and credits.

@@ -1,67 +1,63 @@
 # Overleaf Realtime Preview
 
-[English](README.en.md)
+中文 / English — 中英文对照说明
 
-把 [realtime-tex](https://github.com/HenryXiaoYang/realtime-tex) 的增量排版接进自部署的 [Overleaf CE](https://github.com/overleaf/overleaf)，在原来的右侧预览区切换「传统 PDF」和「LuaLaTeX 实时预览」。
+我们想做的事情很简单：**在 Overleaf 里实现实时 LaTeX 预览，同时支持中文和英文。**
 
-> **实验性源码版 · 0.1.0-alpha.2**  
-> 提供源码和构建工具，已在固定环境验证安装、实时显示与合成编辑场景；当前支持范围和具体结果以[兼容范围](docs/COMPATIBILITY.md)和[验证记录](docs/VALIDATION.md)为准。
+The goal is simple: **bring realtime LaTeX preview to Overleaf, with support for both Chinese and English.**
 
-这个项目起于写中文论文时的一个想法：能不能继续用熟悉的 Overleaf 编辑器，又少等几次完整编译？于是从已有的开源引擎开始，把预览、编辑器事件和自部署环境接在一起。实际写作中出现的卡顿、公式输入、内容消失和删除后回退等问题，又不断推动后面的修改。现在把这部分集成工作整理出来，希望其他有相似需要的人也能尝试、复现和改进。
+看到 [realtime-tex](https://github.com/HenryXiaoYang/realtime-tex) 开源后，我们觉得这件事有希望了。于是，我们主要借助 GPT（ChatGPT/Codex）编写和调试代码，尝试把它融合进 [Overleaf 的开源社区版](https://github.com/overleaf/overleaf)，让大家继续用熟悉的编辑器，在原来的右侧窗口里看到实时预览。
 
-## 先感谢上游
+When [realtime-tex](https://github.com/HenryXiaoYang/realtime-tex) was released as open source, we saw a way to make this happen. We used GPT (ChatGPT/Codex) for most of the coding and debugging, working to integrate it into [Overleaf Community Edition](https://github.com/overleaf/overleaf). The idea was to keep the familiar editor and show the live preview in its existing right-hand pane.
 
-这个项目建立在 **[realtime-tex](https://github.com/HenryXiaoYang/realtime-tex)、[Overleaf CE](https://github.com/overleaf/overleaf) 和 [realtime-tex-vsc-plugin](https://github.com/HenryXiaoYang/realtime-tex-vsc-plugin)** 的工作之上。它们提供核心排版引擎、编辑平台和浏览器渲染基础。本仓库的工作集中在集成、下游补丁、状态协调、导航、恢复与部署工具；原作者和贡献者的署名、许可均保留。
+## 从想法到现在 / How we got here
 
-**大部分代码编写、修改、调试和测试构造借助 ChatGPT/Codex 完成。** 项目发起者提出需求，在真实中文写作中持续使用、反馈问题，并验证修改后的体验。开发过程是这样一轮轮推进的。测试结果和使用限制均单独记录。更多归属说明见[开发说明](docs/DEVELOPMENT.md)。
+接起来之后，真正的麻烦才开始。尤其是在较大的中文项目里，出现了不少问题：新起一段要等很久，同一段里继续输入却很快；刚显示的文字又消失了；删掉的内容重新出现；公式还没写完，预览就卡住；跨页时更新慢，定位和行距也时常不对。
 
-![独立测试实例中的合成文档预览](docs/images/preview.png)
+Getting the two projects connected was only the beginning. Larger Chinese documents exposed all sorts of bugs: a new paragraph could take ages to appear while edits within it felt quick; text would appear and then disappear; deleted content would return; unfinished formulas could stall the preview; and page breaks, position following and line spacing caused more trouble.
 
-截图使用合成文档，不包含私人论文。
+后面就是大量的使用、反馈和调试。我在实际写作中反复试，把遇到的问题反馈给 GPT，再一起排查、修改、验证。现在我们把一个基本可用的版本整理出来，希望更多人能试一试，告诉我们哪里好用、哪里还不行，也欢迎一起改进。它还不完善，尤其需要更多中文和英文项目的实际反馈。
 
-## 目前实现了什么
+What followed was a lot of use, feedback and debugging. I kept trying it in real writing, reporting what went wrong, and working with GPT to investigate, change the code and check the results. We are now sharing an initial usable version so more people can try it, tell us what works and what does not, and help improve it. There is still work to do, and feedback from more Chinese and English projects would be especially welcome.
 
-- 在 Overleaf 原有的右侧预览区切换传统 PDF 与实时模式。
-- 已有段落的小幅修改优先走局部更新，后台继续完成整篇排版。
-- 利用编辑器事件和源位置映射连接编辑位置、预览定位与导航。
-- 为新段落、未完成公式、连续修改、删除和后台排版结果增加一致性与恢复检查。
-- 提供固定上游版本的引擎构建、前端隔离构建、项目绑定、服务生命周期和代理回滚工具。
+## 感谢 / Thank you
 
-实时预览使用 **LuaLaTeX**；正式 PDF 继续采用 Overleaf 原有编译设置。XeLaTeX 模板需要检查字体和排版差异。复杂结构、跨页和全局依赖仍可能触发完整排版，响应时间也会受 TeX 环境和连接方式影响。这里不承诺固定毫秒数、任意模板或任意 Overleaf 版本的兼容性。
+**非常感谢 realtime-tex 项目组的杰出工作和贡献。没有他们的开源工作，就不会有这个尝试。** 也感谢 Overleaf 和 [realtime-tex-vsc-plugin](https://github.com/HenryXiaoYang/realtime-tex-vsc-plugin) 的作者与贡献者。本项目建立在这些开源项目之上，主要做集成和针对实际使用问题的修改；原作者的署名和许可均予以保留。
 
-定位按引擎给出的排版单元工作。普通正文可以跟随；复杂跨页环境及部分包含文件的位置映射仍较粗或不完整，某些末尾位置也可能无法准确对应，不等同于逐字符 SyncTeX。需要精确定位时可切回传统 PDF。真实操作系统拼音输入法、更多模板和多人并发还需要继续验证。
+**Our deepest thanks to the realtime-tex team for their outstanding work and contributions. This project would not have been possible without their open-source work.** We also thank the authors and contributors of Overleaf and [realtime-tex-vsc-plugin](https://github.com/HenryXiaoYang/realtime-tex-vsc-plugin). This project builds on their work, focusing on integration and fixes prompted by actual use. Original credits and licenses are preserved.
 
-首版请保持实时模式开启再编辑。若在传统模式、断开期间或其他会话中修改了正文，重新开启实时模式可能因快照不一致而暂停；需要管理员按[刷新快照步骤](docs/installation/README.md#refreshing-a-stale-preview)重新加载当前正文。这个版本尚未自动接管此类外部修改。
+![Overleaf 中的实时预览 / Realtime preview in Overleaf](docs/images/preview.png)
 
-[运行环境与测试清单](docs/ENVIRONMENT_AND_TESTS.md) · [隐私与发布检查](docs/SECURITY_AND_PRIVACY.md)
+*演示使用合成文档。 / The demo uses a synthetic document.*
 
-## 从哪里开始
+## 反馈问题 / Reporting problems
 
-请先阅读[安装与验收步骤](docs/installation/README.md)，在独立测试实例里使用一个项目副本。首版面向 **Linux amd64、一个明确固定的 Overleaf CE 源码/镜像组合、一个绑定项目和一个控制编辑会话**。准确镜像摘要、所需 TeX 包、操作前提和未覆盖的场景均列在文档中。
+如果你遇到卡顿、显示错误、内容消失，或者有其他建议，欢迎到 [GitHub Issues](https://github.com/WangMeng20152019/overleaf-realtime-preview/issues) 告诉我们。简单说清楚做了什么、预期怎样、实际发生了什么，最好再附一个能复现问题的小例子，就很有帮助。
 
-新环境验证覆盖引擎构建、中文与四种公式恢复，以及真实 Overleaf 中的新段落、公式恢复、多段删除、跨文件修改和两种预览切换。历史私人服务器的结果另行标记；各项测试和生命周期验收的详情见验证记录。
+If you run into slow updates, rendering errors, disappearing content, or have suggestions, please open a [GitHub issue](https://github.com/WangMeng20152019/overleaf-realtime-preview/issues). Tell us what you did, what you expected and what actually happened. A small example that reproduces the problem would be very helpful.
 
-源码包包含集成源码、引擎补丁、许可和构建工具；运行文件由你在本地生成。它不打包私人文档、开发缓存、引擎可执行文件或 TeX 字体。先检查源码构建：
+实时预览里提供了 **“诊断”按钮**，可以下载预览状态和耗时记录，方便排查问题。它不会自动提交报错。分享前请检查文件，去掉项目标识等不想公开的信息；也请不要上传私人论文、账号或访问令牌。
 
-```sh
-npm ci --ignore-scripts
-npm run build
-npm test
-npm run test:deployment
-```
+The live preview includes a **诊断 (Diagnostics) button** that downloads preview state and timing information to help with troubleshooting. It does not submit a report automatically. Review the file before sharing it and remove project identifiers or anything else you do not want to make public. Please do not upload private manuscripts, account details or access tokens.
 
-这组命令只负责本仓库的构建与测试。后续引擎构建、前端接入和服务安装按[安装文档](docs/installation/README.md)执行。[引擎说明](engine/README.md)还提供官方源码压缩包的校验下载方式，以及匹配的 TeX 支持文件和依赖许可收集流程。
+## 使用与当前版本 / Getting started
 
-## 反馈与参与
+当前版本为 **0.1.0-alpha.2**，是完整源码的实验性发布。支持在 Overleaf 原来的预览区切换传统 PDF 与 LuaLaTeX 实时预览。中文和英文预览是我们的目标，也已做过中文正文和公式测试；不同模板、字体、输入法和大型项目仍需要更多验证。
 
-开发中最费时间的，往往是「已经能显示」之后的问题：第一段很慢，第二段很快，输入第三段时第二段却消失；公式还没打完就卡住；删掉的内容又回来了。这些经历整理在[问题记录](docs/BUG_HISTORY.md)里。
+**0.1.0-alpha.2** is an experimental release of the complete source. It lets you switch between traditional PDF and LuaLaTeX realtime preview in Overleaf's existing preview pane. Chinese and English preview is the goal, and Chinese text and formulas have been tested. More testing is needed across templates, fonts, input methods and large projects.
 
-欢迎提交能用合成文档复现的问题，说明操作顺序、编译器/模板和最后观察到的状态。请先去掉私人论文、账户信息、访问令牌与原始诊断中的敏感内容。诊断记录中，真实观察到的结果比「应该已经修好」更有帮助。
+请从[安装说明](docs/installation/README.md)开始，先用项目副本尝试。目前安装验证针对固定的 Overleaf CE 环境；实时预览使用 LuaLaTeX，正式 PDF 保留原来的编译设置。已知的定位、跨页和重新开启预览等限制，见[兼容说明](docs/COMPATIBILITY.md)。
 
-想参与调试，可以从[合成文档预览页](dev/preview/README.md)开始。它连接实际编辑器事务、桥接和渲染代码，便于重复测试；完整 Overleaf 验收仍需在对应环境中单独完成。
+Start with the [installation guide](docs/installation/README.md) and try a copy of your project first. Installation has been validated against a pinned Overleaf CE environment. Live preview uses LuaLaTeX; formal PDF compilation keeps your existing settings. See [compatibility notes](docs/COMPATIBILITY.md) for known limitations around navigation, pagination and reopening the preview.
 
-[开发与归属](docs/DEVELOPMENT.md) · [验证记录](docs/VALIDATION.md) · [兼容范围](docs/COMPATIBILITY.md) · [变更记录](CHANGELOG.md) · [发布计划](docs/RELEASE_PLAN.md)
+- [下载安装包 / Downloads](https://github.com/WangMeng20152019/overleaf-realtime-preview/releases/tag/v0.1.0-alpha.2)
+- [开发与 AI 使用说明 / Development and AI use](docs/DEVELOPMENT.md)
+- [实际遇到的问题 / Bug history](docs/BUG_HISTORY.md)
+- [本地调试网页 / Local debug page](dev/preview/README.md)
+- [运行环境与测试 / Environment and tests](docs/ENVIRONMENT_AND_TESTS.md) · [验证记录 / Validation](docs/VALIDATION.md)
 
-## 许可证
+## 许可证 / License
 
-本集成按 **AGPL-3.0-only** 提供，全文见 [COPYING](COPYING)。第三方组件保留原许可与署名，来源见 [THIRD_PARTY.md](THIRD_PARTY.md)。首次公开范围是源码；如果重新分发编译后的运行包，需要同时保留构建工具生成的组件许可和 notices 清单。
+本集成按 **AGPL-3.0-only** 发布。第三方组件保留各自的许可和署名，详见 [COPYING](COPYING)、[NOTICE](NOTICE) 和 [THIRD_PARTY.md](THIRD_PARTY.md)。
+
+This integration is released under **AGPL-3.0-only**. Third-party components retain their own licenses and credits; see [COPYING](COPYING), [NOTICE](NOTICE) and [THIRD_PARTY.md](THIRD_PARTY.md).
