@@ -15,8 +15,12 @@ The [validation record](VALIDATION.md) and [compatibility matrix](COMPATIBILITY.
 
 After final acceptance, freeze the source archive, its file manifest and SHA256SUMS. Verify an extracted copy with a fresh dependency installation and the documented build/check commands. Keep generated runtime, TeX/fonts, container images, credentials, private diagnostics and paper content out of the first source publication.
 
-## Later GitHub publication
+## One complete GitHub release
 
-Use a fresh repository rather than importing private development history. Publish the reviewed source snapshot and experimental tag with the same notices, compatibility boundaries and validation record. The user has requested local preparation only; no remote repository, release, or tag is created in this task.
+The reviewed snapshot is now in [overleaf-realtime-preview](https://github.com/WangMeng20152019/overleaf-realtime-preview), with no private development history. Its first GitHub source-check run passed on 2026-11-11.
+
+Publish one experimental release, `v0.1.0-alpha.2`, from this repository. The earlier alpha.1 changelog entry records local preparation; it is not a separate download or installation requirement. The repository contains the full source, installation instructions, synthetic debug page, tests, provenance and known limitations. Attach the matching `source.tar.gz`, `filemanifest.json` and `SHA256SUMS` to that same release. Use the [complete release notes](RELEASE_NOTES.md) for the release page.
+
+Repository visibility and the release Publish button are separate GitHub controls. A private upload is a staging state, not a second edition of the project. Source publication does not imply a prebuilt image or universal one-click installation.
 
 A future binary or container release needs its own complete component and corresponding-source review. It is separate from this source-only alpha.

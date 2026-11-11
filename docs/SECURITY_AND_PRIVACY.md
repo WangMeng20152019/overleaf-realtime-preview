@@ -29,7 +29,7 @@ python3 -B deployment/privacy-audit.py --git-index --denylist "$PRIVATE_RULE_FIL
 
 Review the whole initial publication tree and all history that would be pushed. `.gitignore` does not remove already tracked files or past commits. CI can detect a problem after a push but cannot retract a disclosure; run the local gate first. This release starts from a new Git directory without the private development history.
 
-The supplied workflow uses read-only repository permissions, does not persist checkout credentials, and runs the Git-index gate. It contains no deployment or automatic upload step. Its remote execution remains unverified until actually run on GitHub.
+The supplied workflow uses read-only repository permissions, does not persist checkout credentials, and runs the Git-index gate. It contains no deployment or automatic upload step. Its first remote run passed on 2026-11-11; the exact commit and workflow link are recorded in [validation](VALIDATION.md). This is a scoped publication check, not a full security audit.
 
 ## Data that stays private
 

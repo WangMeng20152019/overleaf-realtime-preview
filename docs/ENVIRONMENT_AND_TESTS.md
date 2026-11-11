@@ -48,7 +48,7 @@ Editing flows from the real editor/native transactions to the project-bound brid
 | `deployment/privacy-audit.py` | Read-only allowlisted source, optional exact Git index, optional matching source archive | Full vulnerability analysis or semantic detection of all private prose |
 | Installed CE browser/lifecycle run | Chinese text, partial math/recovery, new paragraphs/deletion, included-file edits, pagination, two modes, access rejection, source-preserving restart and rollback | Precise SyncTeX in coarse environments, arbitrary templates, real OS IME or concurrent editors |
 
-See [validation](VALIDATION.md) for completed checks and observed limitations. GitHub Actions has not run remotely; local tests must not be relabeled as executed GitHub CI.
+See [validation](VALIDATION.md) for completed checks and observed limitations. The initial uploaded commit passed GitHub source checks on 2026-11-11; the linked validation record identifies that exact run. Remote CI does not replace installed editor acceptance.
 
 ## Public inputs versus local-only artifacts
 

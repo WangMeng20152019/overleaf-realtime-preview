@@ -1,6 +1,6 @@
 # Local source-release checklist
 
-Review date: 2026-11-11. Scope: experimental source alpha for one pinned CE profile and copied project. No GitHub publication is part of this task.
+Review date: 2026-11-11. Scope: experimental source alpha for one pinned CE profile and copied project. Publication is prepared as one source release, `v0.1.0-alpha.2`.
 
 ## Source and attribution
 
@@ -36,6 +36,6 @@ Review date: 2026-11-11. Scope: experimental source alpha for one pinned CE prof
 
 Off-mode edits may require administrator snapshot refresh; this is not automatic. Complex/included-file navigation may lack accurate placements; exact SyncTeX is not implemented. Real OS IME, more templates, large documents, reverse-navigation UI, detailed session/reconnect cases and multiple controlling editors remain further validation, not results inferred from historical reports. Container recreation/image upgrades require a deliberate reinstall/persistence plan.
 
-GitHub Actions is supplied but has not run on GitHub. At a later publication step, create the public repository/tag from the reviewed snapshot and provide the durable corresponding-source location for that exact release. No remote repository, tag or release has been created here.
+The private repository has been uploaded without private development history. [GitHub source checks for the initial commit passed](https://github.com/WangMeng20152019/overleaf-realtime-preview/actions/runs/42985756033) on 2026-11-11. The public release uses the same repository and a single `v0.1.0-alpha.2` tag, with the matching source archive, manifest and checksums. Repository publication and release publication must be verified separately; prepared notes are not evidence that either final button has been pressed.
 
 The first artifact contains source and build tools. A future binary/container distribution needs its own complete component inventory, notices and corresponding-source review; the npm lock inventory is not an inventory of an entire Overleaf image or TeX installation.

@@ -13,7 +13,7 @@ The source archive was extracted outside the development repository and its ance
 | Scoped synthetic preview build | Passed |
 | Local documentation links | 57 checked, no missing targets at review |
 
-The final executable-source snapshot was cleanly extracted and verified after the VFS checkpoint and navigation changes. Later documentation/demo-image updates have their own final archive manifest and checksums. GitHub Actions is supplied but has not been run on GitHub.
+The final executable-source snapshot was cleanly extracted and verified after the VFS checkpoint and navigation changes. Later documentation/demo-image updates have their own final archive manifest and checksums. GitHub execution is recorded separately below.
 
 ## Fresh engine and component installation
 
@@ -66,10 +66,14 @@ The actual browser scenario used committed Chinese input/paste and keyboard acti
 
 Earlier NAS work recorded 620 bridge tests, 108 engine tests and a long Chinese thesis preview. Those are historical reports, not tests performed on this cleaned public snapshot. Private papers, raw diagnostics, accounts, server configuration and screenshots are excluded from the source package.
 
-No production/NAS files were changed during this local release preparation. No GitHub repository, tag or release was published.
+No production/NAS files were changed during this local release preparation. Subsequent GitHub publication checks are recorded below.
 
 ## Privacy follow-up — 2026-11-11
 
 The alpha.2 update adds publication tooling, CI configuration and environment/privacy documentation. It does not change the engine, bridge, editor integration or renderer used in the installed Nov 10 acceptance. Thirteen additional privacy-gate tests cover staged excluded files, changed index bytes, unreviewed source, symlinks, credential patterns, mismatched/tampered archives and an incorrect repository root. The current Python suite totals 157 tests.
 
 The prior release's exact bytes were rechecked: no maintainer account name, private NAS label or RFC1918 address was found in its public files. Mongo-shaped IDs were synthetic repeated-character/sequence fixtures; email matches were upstream license attribution or example-domain fixtures. Source image pixels were the previously reviewed synthetic document and its metadata remained stripped. Maintainer-specific fingerprint constants were moved to a protected local denylist rather than included in public source. These are scoped checks, not an external security audit.
+
+## GitHub source checks — 2026-11-11
+
+The first uploaded commit, `853967170f1c45ba74fafca445a6bef9f11c538f`, passed the [source checks workflow](https://github.com/WangMeng20152019/overleaf-realtime-preview/actions/runs/42985756033). The workflow performs dependency installation, build, JavaScript tests, Python tests, scoped debug-page checking and the staged-source privacy gate on Ubuntu with Node 24. This is remote source/build verification; it does not add installed Overleaf, performance or real-IME acceptance. Later documentation changes must pass their own workflow run.
